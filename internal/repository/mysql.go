@@ -27,7 +27,7 @@ func (m *MySQLRepo) RegisterFile(ctx context.Context, id, path string, size int6
 	defer cancel()
 
 	stmt, err := m.db.PrepareContext(ctx,
-		"INSERT INTO metadata (id, file_path, extension, file_size, status) VALUES (?, ?, ?, ?, 'PENDING')")
+		"INSERT INTO metadata (id, file_path, extension, `file_size(bytes)`, status) VALUES (?, ?, ?, ?, 'PENDING')")
 	if err != nil {
 		return fmt.Errorf("prepare insert: %w", err)
 	}
@@ -63,7 +63,7 @@ func (m *MySQLRepo) GetFile(ctx context.Context, id string) (string, string, int
 	defer cancel()
 
 	row := m.db.QueryRowContext(ctx,
-		"SELECT file_path, sha256, file_size, status, extension FROM metadata WHERE id=?", id)
+		"SELECT file_path, sha256, `file_size(bytes)`, status, extension FROM metadata WHERE id=?", id)
 
 	var path, hash, status, extension string
 	var size int64

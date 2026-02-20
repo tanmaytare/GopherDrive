@@ -158,11 +158,12 @@ func main() {
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"id":     resp.Id,
-			"path":   resp.Path,
-			"hash":   resp.Hash,
-			"size":   resp.Size,
-			"status": resp.Status,
+			"id":        resp.Id,
+			"path":      resp.Path,
+			"hash":      resp.Hash,
+			"size":      resp.Size,
+			"status":    resp.Status,
+			"extension": resp.Extension,
 		})
 	})
 

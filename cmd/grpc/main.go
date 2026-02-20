@@ -22,7 +22,7 @@ type server struct {
 }
 
 func (s *server) RegisterFile(ctx context.Context, r *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	return &pb.RegisterResponse{}, s.repo.RegisterFile(ctx, r.Id, r.Path, r.Size, "")
+	return &pb.RegisterResponse{}, s.repo.RegisterFile(ctx, r.Id, r.Path, r.Size, r.Extension)
 }
 
 func (s *server) UpdateStatus(ctx context.Context, r *pb.UpdateRequest) (*pb.UpdateResponse, error) {
@@ -30,7 +30,7 @@ func (s *server) UpdateStatus(ctx context.Context, r *pb.UpdateRequest) (*pb.Upd
 }
 
 func (s *server) GetFile(ctx context.Context, r *pb.GetRequest) (*pb.GetResponse, error) {
-	path, hash, size, status, _, err := s.repo.GetFile(ctx, r.Id)
+	path, hash, size, status, extension, err := s.repo.GetFile(ctx, r.Id)
 	if err != nil {
 		if err.Error() != "" && (err.Error() == "not found: sql: no rows in result set" || err.Error() == "sql: no rows in result set") {
 			return nil, grpcstatus.Error(codes.NotFound, err.Error())
@@ -38,11 +38,12 @@ func (s *server) GetFile(ctx context.Context, r *pb.GetRequest) (*pb.GetResponse
 		return nil, grpcstatus.Error(codes.Unknown, err.Error())
 	}
 	return &pb.GetResponse{
-		Id:     r.Id,
-		Path:   path,
-		Hash:   hash,
-		Size:   size,
-		Status: status,
+		Id:        r.Id,
+		Path:      path,
+		Hash:      hash,
+		Size:      size,
+		Status:    status,
+		Extension: extension,
 	}, nil
 }
 
