@@ -9,9 +9,9 @@ import (
 )
 
 type MetadataRepo interface {
-	RegisterFile(ctx context.Context, id, path string, size int64) error
+	RegisterFile(ctx context.Context, id, path string, size int64, extension string) error
 	UpdateStatus(ctx context.Context, id, hash, status string) error
-	GetFile(ctx context.Context, id string) (string, string, int64, string, error)
+	GetFile(ctx context.Context, id string) (string, string, int64, string, string, error)
 }
 
 type MySQLRepo struct {
@@ -22,18 +22,18 @@ func NewMySQLRepo(db *sql.DB) *MySQLRepo {
 	return &MySQLRepo{db: db}
 }
 
-func (m *MySQLRepo) RegisterFile(ctx context.Context, id, path string, size int64) error {
+func (m *MySQLRepo) RegisterFile(ctx context.Context, id, path string, size int64, extension string) error {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
 	stmt, err := m.db.PrepareContext(ctx,
-		"INSERT INTO metadata (id, file_path, file_size, status) VALUES (?, ?, ?, 'PENDING')")
+		"INSERT INTO metadata (id, file_path, extension, file_size, status) VALUES (?, ?, ?, ?, 'PENDING')")
 	if err != nil {
 		return fmt.Errorf("prepare insert: %w", err)
 	}
 	defer stmt.Close()
 
-	_, err = stmt.ExecContext(ctx, id, path, size)
+	_, err = stmt.ExecContext(ctx, id, path, extension, size)
 	if err != nil {
 		return fmt.Errorf("exec insert: %w", err)
 	}
@@ -58,22 +58,22 @@ func (m *MySQLRepo) UpdateStatus(ctx context.Context, id, hash, status string) e
 	return nil
 }
 
-func (m *MySQLRepo) GetFile(ctx context.Context, id string) (string, string, int64, string, error) {
+func (m *MySQLRepo) GetFile(ctx context.Context, id string) (string, string, int64, string, string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
 	row := m.db.QueryRowContext(ctx,
-		"SELECT file_path, sha256, file_size, status FROM metadata WHERE id=?", id)
+		"SELECT file_path, sha256, file_size, status, extension FROM metadata WHERE id=?", id)
 
-	var path, hash, status string
+	var path, hash, status, extension string
 	var size int64
 
-	err := row.Scan(&path, &hash, &size, &status)
+	err := row.Scan(&path, &hash, &size, &status, &extension)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", "", 0, "", fmt.Errorf("not found: %w", err)
+			return "", "", 0, "", "", fmt.Errorf("not found: %w", err)
 		}
-		return "", "", 0, "", fmt.Errorf("scan: %w", err)
+		return "", "", 0, "", "", fmt.Errorf("scan: %w", err)
 	}
-	return path, hash, size, status, nil
+	return path, hash, size, status, extension, nil
 }

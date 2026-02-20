@@ -14,9 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	pb "github.com/tanmaytare/gopherdrive/proto"
+
 	"github.com/google/uuid"
 	"github.com/tanmaytare/gopherdrive/internal/worker"
-	pb "github.com/tanmaytare/gopherdrive/proto"
 	"google.golang.org/grpc"
 )
 
@@ -31,7 +32,14 @@ func main() {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 		_, err := client.GetFile(ctx, &pb.GetRequest{Id: "nonexistent-healthz-check"})
-		dbOK := err == nil || (err != nil && err.Error() != "rpc error: code = NotFound desc = not found: sql: no rows in result set")
+		dbOK := false
+		if err == nil {
+			dbOK = true
+		} else if err.Error() == "rpc error: code = NotFound desc = not found: sql: no rows in result set" {
+			dbOK = true
+		} else {
+			log.Printf("gRPC healthz error: %v", err)
+		}
 
 		// Check disk
 		f, ferr := os.CreateTemp("./data", "healthz-*")
@@ -56,15 +64,26 @@ func main() {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		file, _, err := r.FormFile("file")
+		file, header, err := r.FormFile("file")
 		if err != nil {
-			http.Error(w, "invalid file upload", http.StatusBadRequest)
+			http.Error(w, "file not provided or does not exist", http.StatusBadRequest)
 			return
 		}
 		defer file.Close()
 
+		// Check gRPC connectivity before proceeding
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_, healthErr := client.GetFile(ctx, &pb.GetRequest{Id: "nonexistent-healthz-check"})
+		if healthErr != nil && healthErr.Error() != "rpc error: code = NotFound desc = not found: sql: no rows in result set" {
+			log.Printf("gRPC health check failed in POST /files: %v", healthErr)
+			http.Error(w, "gRPC server unavailable", http.StatusServiceUnavailable)
+			return
+		}
+
 		id := uuid.New().String()
 		safeID := filepath.Base(id)
+		ext := filepath.Ext(header.Filename)
 		tempPath := "./data/.tmp-" + safeID
 		finalPath := "./data/" + safeID
 
@@ -90,11 +109,17 @@ func main() {
 			return
 		}
 
-		client.RegisterFile(context.Background(), &pb.RegisterRequest{
-			Id:   safeID,
-			Path: finalPath,
-			Size: size,
+		// Register file with extension
+		_, regErr := client.RegisterFile(context.Background(), &pb.RegisterRequest{
+			Id:        safeID,
+			Path:      finalPath,
+			Size:      size,
+			Extension: ext,
 		})
+		if regErr != nil {
+			http.Error(w, "failed to register file metadata", http.StatusInternalServerError)
+			return
+		}
 
 		pool.Submit(worker.ProcessingJob{
 			Ctx:      context.Background(),

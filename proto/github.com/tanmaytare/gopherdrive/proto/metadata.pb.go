@@ -26,6 +26,7 @@ type RegisterRequest struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	Size          int64                  `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Extension     string                 `protobuf:"bytes,4,opt,name=extension,proto3" json:"extension,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -79,6 +80,13 @@ func (x *RegisterRequest) GetSize() int64 {
 		return x.Size
 	}
 	return 0
+}
+
+func (x *RegisterRequest) GetExtension() string {
+	if x != nil {
+		return x.Extension
+	}
+	return ""
 }
 
 type RegisterResponse struct {
@@ -259,11 +267,13 @@ func (x *GetRequest) GetId() string {
 
 type GetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Path          string                 `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
-	Hash          string                 `protobuf:"bytes,3,opt,name=hash,proto3" json:"hash,omitempty"`
-	Size          int64                  `protobuf:"varint,4,opt,name=size,proto3" json:"size,omitempty"`
-	Status        string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	SrNo          int32                  `protobuf:"varint,1,opt,name=sr_no,json=srNo,proto3" json:"sr_no,omitempty"`
+	Id            string                 `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
+	Path          string                 `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
+	Hash          string                 `protobuf:"bytes,4,opt,name=hash,proto3" json:"hash,omitempty"`
+	Size          int64                  `protobuf:"varint,5,opt,name=size,proto3" json:"size,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	Extension     string                 `protobuf:"bytes,7,opt,name=extension,proto3" json:"extension,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -296,6 +306,13 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
 func (*GetResponse) Descriptor() ([]byte, []int) {
 	return file_proto_metadata_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetResponse) GetSrNo() int32 {
+	if x != nil {
+		return x.SrNo
+	}
+	return 0
 }
 
 func (x *GetResponse) GetId() string {
@@ -333,15 +350,23 @@ func (x *GetResponse) GetStatus() string {
 	return ""
 }
 
+func (x *GetResponse) GetExtension() string {
+	if x != nil {
+		return x.Extension
+	}
+	return ""
+}
+
 var File_proto_metadata_proto protoreflect.FileDescriptor
 
 const file_proto_metadata_proto_rawDesc = "" +
 	"\n" +
-	"\x14proto/metadata.proto\x12\x05proto\"I\n" +
+	"\x14proto/metadata.proto\x12\x05proto\"g\n" +
 	"\x0fRegisterRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04path\x18\x02 \x01(\tR\x04path\x12\x12\n" +
-	"\x04size\x18\x03 \x01(\x03R\x04size\"\x12\n" +
+	"\x04size\x18\x03 \x01(\x03R\x04size\x12\x1c\n" +
+	"\textension\x18\x04 \x01(\tR\textension\"\x12\n" +
 	"\x10RegisterResponse\"K\n" +
 	"\rUpdateRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
@@ -350,17 +375,19 @@ const file_proto_metadata_proto_rawDesc = "" +
 	"\x0eUpdateResponse\"\x1c\n" +
 	"\n" +
 	"GetRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"q\n" +
-	"\vGetResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04path\x18\x02 \x01(\tR\x04path\x12\x12\n" +
-	"\x04hash\x18\x03 \x01(\tR\x04hash\x12\x12\n" +
-	"\x04size\x18\x04 \x01(\x03R\x04size\x12\x16\n" +
-	"\x06status\x18\x05 \x01(\tR\x06status2\xc1\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xa4\x01\n" +
+	"\vGetResponse\x12\x13\n" +
+	"\x05sr_no\x18\x01 \x01(\x05R\x04srNo\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\tR\x02id\x12\x12\n" +
+	"\x04path\x18\x03 \x01(\tR\x04path\x12\x12\n" +
+	"\x04hash\x18\x04 \x01(\tR\x04hash\x12\x12\n" +
+	"\x04size\x18\x05 \x01(\x03R\x04size\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\x12\x1c\n" +
+	"\textension\x18\a \x01(\tR\textension2\xc1\x01\n" +
 	"\x0fMetadataService\x12?\n" +
 	"\fRegisterFile\x12\x16.proto.RegisterRequest\x1a\x17.proto.RegisterResponse\x12;\n" +
 	"\fUpdateStatus\x12\x14.proto.UpdateRequest\x1a\x15.proto.UpdateResponse\x120\n" +
-	"\aGetFile\x12\x11.proto.GetRequest\x1a\x12.proto.GetResponseB\x13Z\x11gopherdrive/protob\x06proto3"
+	"\aGetFile\x12\x11.proto.GetRequest\x1a\x12.proto.GetResponseB)Z'github.com/tanmaytare/gopherdrive/protob\x06proto3"
 
 var (
 	file_proto_metadata_proto_rawDescOnce sync.Once
