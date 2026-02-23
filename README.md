@@ -432,9 +432,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Author
 
-**Tanmay Tare**
-- GitHub: [@tanmaytare](https://github.com/tanmaytare)
-- Email: tanmaytare@example.com
+Our Team :
+1. Tanmay Tare
+2. Pranav Ratnalikar
+3. Vishal Kumar
+4. Amey Mahulkar
+5. Shivam Padalkar
 
 ## Acknowledgments
 
